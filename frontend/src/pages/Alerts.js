@@ -10,7 +10,7 @@ const Alerts = () => {
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/alerts');
+        const response = await axios.get('/api/alerts');
         setAlerts(response.data);
         setLoading(false);
       } catch (error) {

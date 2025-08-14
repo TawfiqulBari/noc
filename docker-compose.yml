@@ -3,19 +3,23 @@ version: '3.8'
 services:
   backend:
     build: ./backend
-    ports:
-      - "8000:8000"
     environment:
       - INFLUXDB_URL=http://influxdb:8086
     depends_on:
       - influxdb
     volumes:
       - ./backend:/app
+    networks:
+      - app-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`noc.tawfiqulbari.work`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.backend.tls=true"
+      - "traefik.http.routers.backend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.backend.loadbalancer.server.port=8000"
 
   influxdb:
     image: influxdb:2.7
-    ports:
-      - "8086:8086"
     volumes:
       - influxdb-data:/var/lib/influxdb2
     environment:
@@ -25,17 +29,29 @@ services:
       - DOCKER_INFLUXDB_INIT_ORG=monitoring
       - DOCKER_INFLUXDB_INIT_BUCKET=metrics
       - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-super-secret-auth-token
+    networks:
+      - app-network
 
   frontend:
     image: node:18
     working_dir: /app
-    ports:
-      - "3000:3000"
     volumes:
       - ./frontend:/app
     command: sh -c "npm install && npm run dev"
     depends_on:
       - backend
+    networks:
+      - app-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`noc.tawfiqulbari.work`)"
+      - "traefik.http.routers.frontend.tls=true"
+      - "traefik.http.routers.frontend.tls.certresolver=letsencrypt"
+      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
 
 volumes:
   influxdb-data:
+
+networks:
+  app-network:
+    external: true

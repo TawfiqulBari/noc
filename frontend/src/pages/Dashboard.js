@@ -20,7 +20,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchMetrics = async () => {
       try {
-        const response = await axios.get('http://localhost:8000/metrics');
+        const response = await axios.get('/api/metrics');
         setMetrics(response.data);
         
         // Calculate summary stats
