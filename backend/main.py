@@ -1,14 +1,17 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from influxdb_client import InfluxDBClient
-from influxdb_client.client.write_api import SYNCHRONOUS
 import uvicorn
 import os
 from datetime import datetime, timedelta
-from influxdb_client import Point
 from typing import List, Dict
+from influxdb_client import Point, InfluxDBClient
+from influxdb_client.client.write_api import SYNCHRONOUS
+from influxdb_connector import init_influxdb
 
 app = FastAPI()
+
+# Initialize InfluxDB client
+client, write_api, query_api, bucket = init_influxdb()
 
 # Enable CORS
 app.add_middleware(
@@ -19,14 +22,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize InfluxDB client
-influxdb = InfluxDBClient(
-    url=os.getenv("INFLUXDB_URL", "http://influxdb:8086"),
-    token=os.getenv("INFLUXDB_TOKEN", "my-super-secret-auth-token"),
-    org=os.getenv("INFLUXDB_ORG", "monitoring")
-)
-write_api = influxdb.write_api(write_options=SYNCHRONOUS)
-query_api = influxdb.query_api()
 
 @app.get("/")
 async def root():
